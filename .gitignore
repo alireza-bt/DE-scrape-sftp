@@ -1,0 +1,5 @@
+*.ini
+*.log
+*.csv
+settings.json
+*_data
