@@ -4,7 +4,7 @@ import argparse
 import pandas as pd
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('./config.ini')
 
 server = config['azure']['SERVER']
 database = config['azure']['DB']
