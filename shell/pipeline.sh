@@ -4,39 +4,39 @@ parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$parent_path"
 cd .. # now we are in the main directory of project
 
-# #A simple bash script to 1. scrape data 2. move to sftp azure 3. move to database
-# #set -e
+#A simple bash script to 1. scrape data 2. move to sftp azure 3. move to database
+#set -e
 
-# #write one function per step to be able to run the steps separately
+#write one function per step to be able to run the steps separately
 
-# #0.1 precheck: if there are any files in data folder -> move to archive
-# move_data_to_archive () {
-# 	#files_list=`ls ./new_data/*\(.csv\|.html\)` #doesn't work
-# 	files_list=`ls ${new_data_dir}/*.* 2>/dev/null`
-# 	timestamp=$(date "+%Y%m%d_%H%M%S")
-# 	dateVar=$(date "+%Y%m%d")
+#0.1 precheck: if there are any files in data folder -> move to archive
+move_data_to_archive () {
+	#files_list=`ls ./new_data/*\(.csv\|.html\)` #doesn't work
+	files_list=`ls ${new_data_dir}/*.* 2>/dev/null`
+	timestamp=$(date "+%Y%m%d_%H%M%S")
+	dateVar=$(date "+%Y%m%d")
 
-# 	for item in ${files_list}
-# 	do
-# 		#get just file name without path
-# 		file_name=$(echo $item | awk -F'/' '{print $NF}')
-# 		suffix=$(echo $file_name | cut -d. -f 2)
-# 		new_name=''
-# 		if [[ $suffix == 'html' ]]
-# 		then
-# 			name=$(echo $file_name | cut -d. -f 1)
-# 			new_name="${name}_$timestamp.$suffix"
-# 		elif [[ scrape_pages_count > 0 ]]
-# 			new_name="${file_name}"
-# 		else
-# 			continue
-# 		fi
-# 		mv $item $archive_data_dir/$new_name
-# 	done
-# 	echo "moved files to archive"
-# }
+	for item in ${files_list}
+	do
+		#get just file name without path
+		file_name=$(echo $item | awk -F'/' '{print $NF}')
+		suffix=$(echo $file_name | cut -d. -f 2)
+		new_name=''
+		if [[ $suffix == 'html' ]]
+		then
+			name=$(echo $file_name | cut -d. -f 1)
+			new_name="${name}_$timestamp.$suffix"
+		elif [[ scrape_pages_count > 0 ]]
+			new_name="${file_name}"
+		else
+			continue
+		fi
+		mv $item $archive_data_dir/$new_name
+	done
+	echo "moved files to archive"
+}
 
-# #1. activate python venv (This step depends on the venv or environment etc.)
+#1. activate python venv (This step depends on the venv or environment etc.)
 activate_pyenv () {
 	source ~/miniforge3/bin/activate
 	conda activate testenv
@@ -56,66 +56,66 @@ deactivate_pyenv () {
 	echo "venv deactivated"
 }
 
-# #2. Scrape, Parse and save html pages in csv format
-# scrape_data () {
-# 	move_data_to_archive()
-# 	activate_pyenv()
+#2. Scrape, Parse and save html pages in csv format
+scrape_data () {
+	move_data_to_archive()
+	activate_pyenv()
 
-# 	for ((i=1;i<=$scrape_pages_count;i+=1))
-# 	do
-# 		#2. scrape data from indeed
-# 		input_file="${new_data_dir}/indeed_$i.html"
-# 		output_file="${new_data_dir}/result_$timestamp.csv"
-# 		py_script="parse.py"
-# 		start_value=$(( i*10 ))
+	for ((i=1;i<=$scrape_pages_count;i+=1))
+	do
+		#2. scrape data from indeed
+		input_file="${new_data_dir}/indeed_$i.html"
+		output_file="${new_data_dir}/result_$timestamp.csv"
+		py_script="parse.py"
+		start_value=$(( i*10 ))
 
-# 		curl -o $input_file --user-agent 'Chrome/79' "https://de.indeed.com/jobs?q=Data+Engineer&l=hamburg&start=$start_value"
-# 		echo "Scrape page $i done!"
+		curl -o $input_file --user-agent 'Chrome/79' "https://de.indeed.com/jobs?q=Data+Engineer&l=hamburg&start=$start_value"
+		echo "Scrape page $i done!"
 
-# 		#3. check if html file exists and then run python script to parse html file
-# 		#python script input parameter: input html file to parse
-# 		if [[ -f "$input_file" ]] 
-# 		then
-# 			echo "$input_file exists."
-# 			#/Users/alirezabitarafan/miniforge3/envs/testenv/bin/python ./$py_script ./$input_file
-# 			python ./$py_script ./$input_file ./$output_file
-# 			echo "parsing $input_file done!"
-# 		else
-# 			echo "$input_file not found!"
-# 		fi
+		#3. check if html file exists and then run python script to parse html file
+		#python script input parameter: input html file to parse
+		if [[ -f "$input_file" ]] 
+		then
+			echo "$input_file exists."
+			#/Users/alirezabitarafan/miniforge3/envs/testenv/bin/python ./$py_script ./$input_file
+			python ./$py_script ./$input_file ./$output_file
+			echo "parsing $input_file done!"
+		else
+			echo "$input_file not found!"
+		fi
 
-# 	done
+	done
 
-# 	deactivate_pyenv()
-# }
+	deactivate_pyenv()
+}
 
-# #encrypt some fields of csv file
-# #encrypt_data () {}
+#encrypt some fields of csv file
+#encrypt_data () {}
 
-# #5. send to sftp azure
-# put_data_to_sftp () {
-# #connect to sftp using ssh key pair
-# sftp -i ~/.ssh/id_rsa abstorage1test.storageuser1@abstorage1test.blob.core.windows.net << EOF
-# put ./${new_data_dir}/*.csv
-# exit	
-# EOF
-# echo "Moved results to sftp"
-# }
+#5. send to sftp azure
+put_data_to_sftp () {
+#connect to sftp using ssh key pair
+sftp -i ~/.ssh/id_rsa abstorage1test.storageuser1@abstorage1test.blob.core.windows.net << EOF
+put ./${new_data_dir}/*.csv
+exit	
+EOF
+echo "Moved results to sftp"
+}
 
-# #There are 2 ways here:
-# # 1-Getting data from SFTP and move to Azure SQL using BCP Commandline
-# # 2-Moving data directly from SFTP Storage to Azure SQL using DataFactory
+#There are 2 ways here:
+# 1-Getting data from SFTP and move to Azure SQL using BCP Commandline
+# 2-Moving data directly from SFTP Storage to Azure SQL using DataFactory
 
-# #6. Getting data from SFTP
-# get_from_sftp () {
-# sftp -i ~/.ssh/id_rsa abstorage1test.storageuser1@abstorage1test.blob.core.windows.net << EOF
-# 	get *_$dateVar_*.csv
-# 	bye
-# EOF
-# echo "Received data from sftp"
-# }
+#6. Getting data from SFTP
+get_from_sftp () {
+sftp -i ~/.ssh/id_rsa abstorage1test.storageuser1@abstorage1test.blob.core.windows.net << EOF
+	get *_$dateVar_*.csv
+	bye
+EOF
+echo "Received data from sftp"
+}
 
-# #7. move to DB (Stage) using bcp commandline tool
+#7. move to DB (Stage) using bcp commandline tool
 move_data_to_DB () {
 	#import data to azure in 100 rows batch
 	#how to change this to create and replace table??
@@ -197,20 +197,20 @@ run_steps() {
 	done
 }
 
-help()
-{
+help() {
 	echo "usage: pipeline.sh [-h | [-s from:to (steps)] [-n scrape_pages_count (if applicable)]]"
 	echo "steps: 1)scrape -- 2)load to sfpt -- 3)get from sftp -- 4)load to DB"
 	exit 0
 }
 
-get_config_values()
-{
+get_config_values() {
 	username=$(awk -F "=" '/USER/ {print $2}' config.ini | tr -d '[:space:]')
 	password=$(awk -F "=" '/PASS/ {print $2}' config.ini | tr -d '[:space:]')
 	#echo ${username}
 	#echo ${password}
 }
+
+## Main Part
 
 new_data_dir="new_data"
 archive_data_dir="archive_data"

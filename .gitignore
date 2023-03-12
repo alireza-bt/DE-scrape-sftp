@@ -3,3 +3,4 @@
 *.csv
 settings.json
 *_data
+.DS_Store
